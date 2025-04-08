@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ミニロト予想</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; padding: 1rem; background: #f9f9f9; }
+        h1 { font-size: 1.5rem; }
+        .card { background: white; padding: 1rem; margin-top: 1rem; border-radius: 0.5rem; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+        .numbers { font-size: 1.2rem; margin: 0.5rem 0; }
+    </style>
+</head>
+<body>
+    <h1>ミニロト予想プログラム（lotowins対応）</h1>
+    <div class="card">
+        <p><strong>前回当選数字:</strong> {{ last_draw }}</p>
+        <p><strong>使用候補（出現頻度トップ15）:</strong> {{ top_15 }}</p>
+    </div>
+    <div class="card">
+        <h2>予想数字（5組）</h2>
+        {% for p in predictions %}
+            <div class="numbers">{{ loop.index }}組目: {{ p }}</div>
+        {% endfor %}
+    </div>
+</body>
+</html>
