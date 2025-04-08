@@ -51,5 +51,8 @@ def index():
     last_draw, top_15, predictions = generate_predictions(draws)
     return render_template("index.html", last_draw=last_draw, top_15=top_15, predictions=predictions)
 
+import os
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
