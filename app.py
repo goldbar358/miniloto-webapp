@@ -7,6 +7,8 @@ import re
 
 app = Flask(__name__)
 
+TARGET_ROUND = "第1328回"
+
 def fetch_lotowins_miniloto():
     url = "https://lotowins.com/pastloto/pastlotomini/"
     response = requests.get(url, timeout=10)
@@ -22,8 +24,12 @@ def fetch_lotowins_miniloto():
             round_info = cols[0].text.strip()
             nums = [int(cols[i].text) for i in range(2, 7)]
             draws.append(nums)
-            if re.search(r"第1328回", round_info):
+            if re.search(TARGET_ROUND, round_info):
                 latest_draw = nums
+
+    # フォールバック：見つからなかった場合は一番上を使用
+    if not latest_draw and draws:
+        latest_draw = draws[0]
 
     return draws[:50], latest_draw
 
@@ -54,9 +60,12 @@ def generate_predictions(draws_50, last_draw):
 
 @app.route("/")
 def index():
-    draws_50, last_draw = fetch_lotowins_miniloto()
-    last_draw, top_15, predictions = generate_predictions(draws_50, last_draw)
-    return render_template("index.html", last_draw=last_draw, top_15=top_15, predictions=predictions)
+    try:
+        draws_50, last_draw = fetch_lotowins_miniloto()
+        last_draw, top_15, predictions = generate_predictions(draws_50, last_draw)
+        return render_template("index.html", last_draw=last_draw, top_15=top_15, predictions=predictions)
+    except Exception as e:
+        return f"Internal Server Error: {str(e)}"
 
 if __name__ == "__main__":
     import os
