@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from collections import Counter
 import random
+import re
 
 app = Flask(__name__)
 
@@ -11,16 +12,22 @@ def fetch_lotowins_miniloto():
     response = requests.get(url, timeout=10)
     response.encoding = "utf-8"
     soup = BeautifulSoup(response.text, "html.parser")
+
     draws = []
-    for row in soup.select("table tr")[1:]:
+    latest_draw = []
+
+    for row in soup.select("table tr"):
         cols = row.find_all("td")
         if len(cols) >= 7:
+            round_info = cols[0].text.strip()
             nums = [int(cols[i].text) for i in range(2, 7)]
             draws.append(nums)
-    return draws[:50]
+            if re.search(r"第1328回", round_info):
+                latest_draw = nums
 
-def generate_predictions(draws_50):
-    last_draw = draws_50[0]
+    return draws[:50], latest_draw
+
+def generate_predictions(draws_50, last_draw):
     flat_numbers = [n for draw in draws_50 for n in draw]
     freq_counter = Counter(flat_numbers)
     top_15 = [num for num, _ in freq_counter.most_common(15)]
@@ -47,13 +54,11 @@ def generate_predictions(draws_50):
 
 @app.route("/")
 def index():
-    draws = fetch_lotowins_miniloto()
-    last_draw, top_15, predictions = generate_predictions(draws)
+    draws_50, last_draw = fetch_lotowins_miniloto()
+    last_draw, top_15, predictions = generate_predictions(draws_50, last_draw)
     return render_template("index.html", last_draw=last_draw, top_15=top_15, predictions=predictions)
 
-import os
-
 if __name__ == "__main__":
+    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
